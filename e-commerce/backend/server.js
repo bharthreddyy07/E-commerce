@@ -1,0 +1,228 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connection successful!'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Schemas
+const productSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  price: Number,
+  image: String,
+  category: String,
+});
+
+const userSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+});
+
+const cartSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
+  items: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      default: 1
+    }
+  }]
+});
+
+const Product = mongoose.model('Product', productSchema);
+const User = mongoose.model('User', userSchema);
+const Cart = mongoose.model('Cart', cartSchema);
+
+// Initial data population
+const initialProducts = [
+  { name: "Vintage Camera", description: "A classic camera with a timeless design.", price: 299.99, image: "https://placehold.co/400x300/F5EFE7/333?text=Camera", category: "Electronics" },
+  { name: "Espresso Machine", description: "Brew perfect espresso at home with ease.", price: 159.99, image: "https://placehold.co/400x300/D8C4B5/333?text=Espresso", category: "Home Goods" },
+  { name: "Wireless Headphones", description: "Immersive sound with noise cancellation.", price: 129.50, image: "https://placehold.co/400x300/C4B7A6/333?text=Headphones", category: "Electronics" },
+  { name: "Leather Satchel", description: "A stylish and durable bag for everyday use.", price: 75.00, image: "https://placehold.co/400x300/A0937D/333?text=Satchel", category: "Apparel" },
+  { name: "Smart Watch", description: "Stay connected on the go with this smart watch.", price: 199.99, image: "https://placehold.co/400x300/8B826D/333?text=Smart+Watch", category: "Electronics" },
+  { name: "Ceramic Mug Set", description: "Handcrafted mugs for your morning coffee.", price: 35.00, image: "https://placehold.co/400x300/776F61/333?text=Mugs", category: "Home Goods" },
+  { name: "Classic Denim Jacket", description: "A timeless jacket for any wardrobe.", price: 89.99, image: "https://placehold.co/400x300/625A4B/333?text=Jacket", category: "Apparel" },
+  { name: "Mechanical Keyboard", description: "Tactile keys for a satisfying typing experience.", price: 149.00, image: "https://placehold.co/400x300/4D453A/333?text=Keyboard", category: "Electronics" }
+];
+
+const seedDatabase = async () => {
+  try {
+    const productCount = await Product.countDocuments();
+    if (productCount === 0) {
+      await Product.insertMany(initialProducts);
+      console.log('Database seeded with initial products!');
+    }
+  } catch (error) {
+    console.error('Error seeding database:', error);
+  }
+};
+
+seedDatabase();
+
+// Middleware to protect routes
+const auth = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).send({ error: 'Authentication required.' });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.user;
+    next();
+  } catch (err) {
+    res.status(401).send({ error: 'Invalid token.' });
+  }
+};
+
+// API Endpoints
+app.get('/api/products', async (req, res) => {
+  try {
+    const { category, search } = req.query;
+    let query = {};
+    if (category && category !== 'All') {
+      query.category = category;
+    }
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    const products = await Product.find(query);
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Auth Endpoints
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists.' });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    user = new User({ email, password: hashedPassword });
+    await user.save();
+    const payload = { user: { id: user.id, email: user.email } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.status(201).json({ token, user: payload.user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials.' });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials.' });
+    }
+    const payload = { user: { id: user.id, email: user.email } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user: payload.user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Cart Endpoints
+app.get('/api/cart', auth, async (req, res) => {
+  try {
+    let cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    if (!cart) {
+      cart = new Cart({ user: req.user.id, items: [] });
+      await cart.save();
+    }
+    res.json(cart);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/cart', auth, async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    let cart = await Cart.findOne({ user: req.user.id });
+    if (!cart) {
+      cart = new Cart({ user: req.user.id, items: [] });
+    }
+    const existingItem = cart.items.find(item => item.product.toString() === productId);
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      cart.items.push({ product: productId, quantity });
+    }
+    await cart.save();
+    await cart.populate('items.product');
+    res.json({ message: 'Item added to cart.', cart });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/cart/:id', auth, async (req, res) => {
+  try {
+    const { id: productId } = req.params;
+    let cart = await Cart.findOne({ user: req.user.id });
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found.' });
+    }
+    const itemIndex = cart.items.findIndex(item => item.product.toString() === productId);
+    if (itemIndex > -1) {
+      if (cart.items[itemIndex].quantity > 1) {
+        cart.items[itemIndex].quantity -= 1;
+      } else {
+        cart.items.splice(itemIndex, 1);
+      }
+    } else {
+      return res.status(404).json({ message: 'Item not in cart.' });
+    }
+    await cart.save();
+    await cart.populate('items.product');
+    res.json({ message: 'Item removed from cart.', cart });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
