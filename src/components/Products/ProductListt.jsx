@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import ProductCard from '../Productcard/productcard';
-import './Productlistt.css'; // New CSS file for the ProductList component
+import ProductCard from '../Productcard/Productcard';
+import './Productlistt.css'; 
 
 const ProductList = ({ addToCart, onSelectProduct, selectedCategory, searchTerm, user, showToast }) => {
   const [products, setProducts] = useState([]);
@@ -12,7 +12,7 @@ const ProductList = ({ addToCart, onSelectProduct, selectedCategory, searchTerm,
       setLoading(true);
       setError(null);
       try {
-        let url = `http://localhost:5000/api/products`;
+        let url = `https://ecommerce-backend07.vercel.app/api/products`;
         if (selectedCategory !== "All") {
           url += `?category=${selectedCategory}`;
         }

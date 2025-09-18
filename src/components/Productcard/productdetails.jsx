@@ -3,7 +3,7 @@ import './productdetails.css';
 
 const ProductDetails = ({ product, onGoBack, addToCart }) => {
   if (!product) {
-    return null; // Don't render if no product is selected
+    return null; 
   }
 
   return (

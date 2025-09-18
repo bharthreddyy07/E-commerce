@@ -14,7 +14,7 @@ const OrderHistory = ({ user, onBackToHome, showToast }) => {
       }
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch('http://localhost:5000/api/orders', {
+        const response = await fetch('https://ecommerce-backend07.vercel.app/api/orders', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

@@ -7,7 +7,7 @@ const ProductCard = ({ product, addToCart, onSelectProduct, user, showToast }) =
     if (user) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/cart', {
+        const response = await fetch('https://ecommerce-backend07.vercel.app/api/cart', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

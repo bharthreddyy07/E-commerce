@@ -5,7 +5,7 @@ const Cart = ({ cart, removeFromCart, calculateTotal, onCheckoutClick, onBackToH
   const handleRemoveItem = async (productId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/cart/${productId}`, {
+      const response = await fetch(`https://ecommerce-backend07.vercel.app/api/cart/${productId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
