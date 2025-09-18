@@ -6,7 +6,7 @@ import Cart from './components/Cart/Cart';
 import './components/styles.css';
 import './components/Productcard/Productcard.css';
 import './components/Cart/Cart.css';
-import './components/Productcard/ProductDetails.css';
+import './components/Productcard/productdetails.css';
 import './components/navbar/navbar.css';
 
 import CheckoutForm from './components/Checkout/Checkout';
