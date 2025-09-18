@@ -8,6 +8,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// We will handle CORS dynamically in a production environment
 app.use(cors());
 app.use(express.json());
 
@@ -58,9 +59,50 @@ const cartSchema = new mongoose.Schema({
   }]
 });
 
+const orderSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  items: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true
+    }
+  }],
+  totalAmount: {
+    type: Number,
+    required: true
+  },
+  shippingAddress: {
+    name: String,
+    email: String,
+    address: String,
+    city: String,
+    postalCode: String,
+    country: String
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'Shipped', 'Delivered'],
+    default: 'Pending'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const Product = mongoose.model('Product', productSchema);
 const User = mongoose.model('User', userSchema);
 const Cart = mongoose.model('Cart', cartSchema);
+const Order = mongoose.model('Order', orderSchema);
 
 // Initial data population
 const initialProducts = [
@@ -103,6 +145,15 @@ const auth = (req, res, next) => {
   }
 };
 
+const adminAuth = (req, res, next) => {
+  // A simple check to see if the user is an admin
+  // In a real app, you would check a user role from the database
+  if (req.user.email !== 'admin@example.com') {
+    return res.status(403).send({ error: 'Forbidden: Admin access required.' });
+  }
+  next();
+};
+
 // API Endpoints
 app.get('/api/products', async (req, res) => {
   try {
@@ -119,6 +170,41 @@ app.get('/api/products', async (req, res) => {
     }
     const products = await Product.find(query);
     res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin Product Management Endpoints
+app.post('/api/admin/products', auth, adminAuth, async (req, res) => {
+  try {
+    const newProduct = new Product(req.body);
+    await newProduct.save();
+    res.status(201).json(newProduct);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/products/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+    res.json(updatedProduct);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/admin/products/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    if (!deletedProduct) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+    res.json({ message: 'Product deleted successfully.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -223,6 +309,46 @@ app.delete('/api/cart/:id', auth, async (req, res) => {
   }
 });
 
+app.post('/api/checkout', auth, async (req, res) => {
+  try {
+    const { shippingAddress } = req.body;
+    const cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: 'Cart is empty.' });
+    }
+    const totalAmount = cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+
+    const newOrder = new Order({
+      user: req.user.id,
+      items: cart.items.map(item => ({
+        product: item.product._id,
+        quantity: item.quantity,
+      })),
+      totalAmount,
+      shippingAddress,
+    });
+
+    await newOrder.save();
+    cart.items = [];
+    await cart.save();
+
+    res.status(201).json({ message: 'Checkout successful! Your order has been placed.', order: newOrder });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// New endpoint for Order History
+app.get('/api/orders', auth, async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user.id }).populate('items.product').sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+

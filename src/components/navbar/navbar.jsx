@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './navbar.css';
 
-const Navbar = ({ cartCount, onCartClick, onHomeClick, onSearch, onLoginClick, user, onLogout }) => {
+const Navbar = ({ cartCount, onCartClick, onHomeClick, onSearch, onLoginClick, user, onLogout, onOrderHistoryClick, onAdminClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSearchChange = (e) => {
@@ -27,6 +27,16 @@ const Navbar = ({ cartCount, onCartClick, onHomeClick, onSearch, onLoginClick, u
         />
       </div>
       <div className="navbar-actions">
+        {user && user.email === 'admin@example.com' && (
+          <button className="navbar-button" onClick={onAdminClick}>
+            <span role="img" aria-label="admin-panel">🛠️</span>
+          </button>
+        )}
+        {user && (
+          <button className="navbar-button" onClick={onOrderHistoryClick}>
+            <span role="img" aria-label="order-history">📜</span>
+          </button>
+        )}
         <button className="navbar-button" onClick={onCartClick}>
           <span role="img" aria-label="cart">🛒</span>
           <span className="cart-count">{cartCount}</span>
@@ -37,7 +47,9 @@ const Navbar = ({ cartCount, onCartClick, onHomeClick, onSearch, onLoginClick, u
             <button className="navbar-button logout-btn" onClick={onLogout}>Logout</button>
           </div>
         ) : (
-          <button className="navbar-button login-btn" onClick={onLoginClick}>Login</button>
+          <button className="navbar-button login-btn" onClick={onLoginClick}>
+            Login
+          </button>
         )}
       </div>
     </nav>

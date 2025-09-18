@@ -1,0 +1,125 @@
+.order-history-container {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.order-history-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.order-history-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.back-btn:hover {
+  color: #2d3748;
+}
+
+.empty-message,
+.loading-message {
+  text-align: center;
+  color: #a0aec0;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background-color: #f7fafc;
+}
+
+.order-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #4a5568;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.order-summary span {
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.order-status {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.order-status.pending { color: #f6ad55; }
+.order-status.shipped { color: #38a169; }
+.order-status.delivered { color: #3182ce; }
+
+.order-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.order-item-image {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  margin-right: 1rem;
+}
+
+.order-item-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.order-item-name {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.order-item-price {
+  font-size: 0.875rem;
+  color: #718096;
+}

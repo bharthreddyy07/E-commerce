@@ -41,7 +41,7 @@ const Cart = ({ cart, removeFromCart, calculateTotal, onCheckoutClick, onBackToH
               <img src={item.product.image} alt={item.product.name} className="cart-item-image" />
               <div className="cart-item-info">
                 <p className="cart-item-name">{item.product.name}</p>
-                <p className="cart-item-price">${item.product.price.toFixed(2)} x {item.quantity}</p>
+                <p className="cart-item-price">₹{item.product.price.toFixed(2)} x {item.quantity}</p>
               </div>
               <div className="cart-item-actions">
                 <button className="remove-btn" onClick={() => handleRemoveItem(item.product._id)}>Remove</button>
@@ -52,7 +52,7 @@ const Cart = ({ cart, removeFromCart, calculateTotal, onCheckoutClick, onBackToH
       </div>
       <div className="cart-summary">
         <span className="cart-total-label">Total:</span>
-        <span className="cart-total-value">${calculateTotal()}</span>
+        <span className="cart-total-value">₹{calculateTotal()}</span>
       </div>
       <button className="checkout-btn" onClick={onCheckoutClick}>Checkout</button>
     </div>

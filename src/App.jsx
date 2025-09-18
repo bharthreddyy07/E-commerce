@@ -16,6 +16,10 @@ import './components/AuthPage.css';
 import {jwtDecode} from 'jwt-decode';
 import Toast from './components/Toast';
 import './components/Toast.css';
+import OrderHistory from './components/Orderhistory/OrderHistory';
+import './components/Orderhistory/OrderHistory.css';
+import AdminPanel from './components/Admin/AdminPanel';
+import './components/Admin/AdminPanel.css';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -130,6 +134,12 @@ function App() {
     showToast('You have been logged out.', 'info');
   };
 
+  const handleCheckoutSuccess = () => {
+    setCart([]);
+    handleNavigation('home');
+    showToast('Checkout successful! Your order has been placed.', 'success');
+  };
+
   return (
     <div className="main-container">
       <Navbar
@@ -138,6 +148,8 @@ function App() {
         onHomeClick={() => handleNavigation('home')}
         onSearch={handleSearch}
         onLoginClick={() => handleNavigation('auth')}
+        onOrderHistoryClick={() => handleNavigation('orders')}
+        onAdminClick={() => handleNavigation('admin')}
         user={user}
         onLogout={handleLogout}
       />
@@ -207,11 +219,21 @@ function App() {
             cart={cart}
             calculateTotal={calculateTotal}
             onBackToCart={() => handleNavigation('cart')}
+            onCheckoutSuccess={handleCheckoutSuccess}
+            showToast={showToast}
           />
         )}
 
         {currentPage === "auth" && (
           <AuthPage onBackToHome={() => handleNavigation('home')} onLoginSuccess={handleLoginSuccess} />
+        )}
+
+        {currentPage === "orders" && (
+          <OrderHistory user={user} onBackToHome={() => handleNavigation('home')} showToast={showToast} />
+        )}
+
+        {currentPage === "admin" && (
+          <AdminPanel user={user} onBackToHome={() => handleNavigation('home')} showToast={showToast} />
         )}
       </main>
       <Toast message={toast.message} type={toast.type} onClose={closeToast} />

@@ -17,7 +17,7 @@ const ProductDetails = ({ product, onGoBack, addToCart }) => {
           <h1 className="details-name">{product.name}</h1>
           <p className="details-description">{product.description}</p>
           <div className="details-meta">
-            <span className="details-price">${product.price.toFixed(2)}</span>
+            <span className="details-price">₹{product.price.toFixed(2)}</span>
             <span className="details-category">Category: {product.category}</span>
           </div>
           <button className="details-add-to-cart-btn" onClick={() => addToCart(product)}>
