@@ -146,8 +146,6 @@ const auth = (req, res, next) => {
 };
 
 const adminAuth = (req, res, next) => {
-  // A simple check to see if the user is an admin
-  // In a real app, you would check a user role from the database
   if (req.user.email !== 'admin@example.com') {
     return res.status(403).send({ error: 'Forbidden: Admin access required.' });
   }
@@ -215,7 +213,7 @@ app.get('/api/admin/orders', auth, adminAuth, async (req, res) => {
   try {
     // Fetches ALL orders and populates both the user and product details
     const orders = await Order.find()
-      .populate('user', 'email') // Populate user details (specifically email)
+      .populate('user', 'email')
       .populate('items.product')
       .sort({ createdAt: -1 });
     res.json(orders);
@@ -369,7 +367,7 @@ app.post('/api/checkout', auth, async (req, res) => {
   }
 });
 
-// New endpoint for Order History
+// Nendpoint for Order History
 app.get('/api/orders', auth, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id }).populate('items.product').sort({ createdAt: -1 });
