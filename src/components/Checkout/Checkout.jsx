@@ -51,13 +51,13 @@ const CheckoutForm = ({ cart, calculateTotal, onBackToCart, onCheckoutSuccess, s
         <ul className="summary-list">
           {cart.map(item => (
             <li key={item.product._id}>
-              {item.product.name} x {item.quantity} - ${item.product.price.toFixed(2)}
+              {item.product.name} x {item.quantity} - ₹{item.product.price.toFixed(2)}
             </li>
           ))}
         </ul>
         <div className="summary-total">
           <span className="total-label">Total:</span>
-          <span className="total-value">${calculateTotal()}</span>
+          <span className="total-value">₹{calculateTotal()}</span>
         </div>
       </div>
 
