@@ -147,7 +147,6 @@ const auth = (req, res, next) => {
 
 const adminAuth = (req, res, next) => {
   // A simple check to see if the user is an admin
-  // In a real app, you would check a user role from the database
   if (req.user.email !== 'admin@example.com') {
     return res.status(403).send({ error: 'Forbidden: Admin access required.' });
   }
@@ -213,9 +212,29 @@ app.delete('/api/admin/products/:id', auth, adminAuth, async (req, res) => {
 // New endpoint for Admin Order Management: Get ALL orders
 app.get('/api/admin/orders', auth, adminAuth, async (req, res) => {
   try {
-    // IMPORTANT: No user ID filter here, so it fetches ALL orders.
-    const orders = await Order.find().populate('items.product').sort({ createdAt: -1 });
+    // Fetches ALL orders and populates both the user and product details
+    const orders = await Order.find()
+      .populate('user', 'email') // Populate user details (specifically email)
+      .populate('items.product')
+      .sort({ createdAt: -1 });
     res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/orders/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Order not found.' });
+    }
+    res.json(updatedOrder);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -362,4 +381,3 @@ app.get('/api/orders', auth, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
