@@ -210,6 +210,17 @@ app.delete('/api/admin/products/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
+// New endpoint for Admin Order Management: Get ALL orders
+app.get('/api/admin/orders', auth, adminAuth, async (req, res) => {
+  try {
+    // IMPORTANT: No user ID filter here, so it fetches ALL orders.
+    const orders = await Order.find().populate('items.product').sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Auth Endpoints
 app.post('/api/auth/register', async (req, res) => {
   try {

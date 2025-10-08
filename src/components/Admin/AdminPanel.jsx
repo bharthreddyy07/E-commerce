@@ -2,18 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './AdminPanel.css';
 
 const AdminPanel = ({ onBackToHome, user, showToast }) => {
-  // Function to determine the correct backend URL dynamically
-  const getBackendUrl = () => {
-    // Check if the app is running locally (Vite default is usually development mode)
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:5000';
-    }
-    // Otherwise, use the deployed Vercel URL
-    return 'https://ecommerce-backend07.vercel.app';
-  };
-  
-  const BACKEND_URL = getBackendUrl();
-  
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +19,7 @@ const AdminPanel = ({ onBackToHome, user, showToast }) => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // API call updated
-      const response = await fetch(`${BACKEND_URL}/api/products`);
+      const response = await fetch('https://ecommerce-backend07.vercel.app/api/products' );
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
@@ -58,8 +45,7 @@ const AdminPanel = ({ onBackToHome, user, showToast }) => {
     }
 
     try {
-      // API URL construction updated
-      const url = isEditing ? `${BACKEND_URL}/api/admin/products/${currentProductId}` : `${BACKEND_URL}/api/admin/products`;
+      const url = isEditing ? `https://ecommerce-backend07.vercel.app/api/admin/products/${currentProductId}` : 'https://ecommerce-backend07.vercel.app/api/admin/products';
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -104,8 +90,7 @@ const AdminPanel = ({ onBackToHome, user, showToast }) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       const token = getToken();
       try {
-        // API URL updated
-        const response = await fetch(`${BACKEND_URL}/api/admin/products/${productId}`, {
+        const response = await fetch(`https://ecommerce-backend07.vercel.app/api/admin/products/${productId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -138,8 +123,7 @@ const AdminPanel = ({ onBackToHome, user, showToast }) => {
     setLoading(true);
     const token = getToken();
     try {
-      // API URL updated
-      const response = await fetch(`${BACKEND_URL}/api/admin/orders`, {
+      const response = await fetch('https://ecommerce-backend07.vercel.app/api/admin/orders', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -160,8 +144,7 @@ const AdminPanel = ({ onBackToHome, user, showToast }) => {
   const handleStatusUpdate = async (orderId, newStatus) => {
     const token = getToken();
     try {
-      // API URL updated
-      const response = await fetch(`${BACKEND_URL}/api/admin/orders/${orderId}`, {
+      const response = await fetch(`https://ecommerce-backend07.vercel.app/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
